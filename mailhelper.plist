@@ -1,1 +1,1 @@
-{ Filter = { Bundles = ( "com.apple.MobileMail" ); }; }
+{ Filter = { Bundles = ( "com.apple.mobilemail" ); }; }
