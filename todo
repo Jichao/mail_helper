@@ -1,9 +1,10 @@
 1. edit cancel crash.
 2. add toolbar button crash while step back controller.
+
 3. the mark all method first time crash.
 4. ios how to use 1x,2x,3x image.
 5. theos how to set the depoly ios version.
 6. how to use lldb on ios?
 7. how to use r2 on ios?
     the cydia version failed.
-8.
+8. how to markasviewed at the source rather than in the MailboxContentViewController.
