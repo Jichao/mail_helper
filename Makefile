@@ -1,10 +1,12 @@
 THEOS_DEVICE_IP = iphone5c
+THEOS_DEVICE_PORT = 2222
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = mailhelper
 mailhelper_FILES = \
 		Tweak.xm \
 		FilterViewController.m \
+		FilterStore.m \
 		Masonry/MASCompositeConstraint.m \
 		Masonry/MASViewConstraint.m \
 		Masonry/MASConstraint.m \

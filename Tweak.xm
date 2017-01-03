@@ -4,6 +4,7 @@ You don't need to #include <substrate.h>, it will be done automatically, as will
 the generation of a class list and an automatic constructor.*/
 
 #import "FilterViewController.h"
+#import "FilterStore.h"
 
 %hook MailboxContentViewController
 
@@ -11,13 +12,16 @@ the generation of a class list and an automatic constructor.*/
 static NSString* const kTag = @"mailhelper: %@";
 static NSString* const kBundlePath =
 @"/Library/MobileSubstrate/DynamicLibraries/mailhelper_res.bundle";
+static UIBarButtonItem* filterButton;
 
 %new
 - (void)myMarkAll
 {
+	if ([FilterStore sharedStore].filters.count == 0) {
+		return;
+	}
 	id mall = [(id)self performSelector:@selector(mall)];
 	NSArray* malls = [mall performSelector:@selector(_copyMalls)];
-	NSLog(@"mailhelper malls: %@", malls);
 	for (id miniMall in malls) {
 		NSUInteger count = (NSUInteger)[miniMall performSelector:@selector(messageCount)];
 		NSArray* messageInfos = [miniMall performSelector:@selector(_copyAllMessageInfos)];
@@ -27,15 +31,18 @@ static NSString* const kBundlePath =
 			Ivar var = class_getInstanceVariable(object_getClass(msg),"_sender");
 			NSArray* senders = object_getIvar(msg, var);
 			for (NSString* sender in senders) {
-				NSRange range =  [sender rangeOfString: @"jcyangzh@foxmail.com"];
-				if (range.location != NSNotFound) {
-					NSLog(@"mailhelper msg %p markAsViewed", msg);
-					[msg performSelector:@selector(markAsViewed)];
-					break;
+				for (NSString* addr in [FilterStore sharedStore].filters) {
+					NSRange range = [sender rangeOfString: addr];
+					if (range.location != NSNotFound) {
+						[msg performSelector:@selector(markAsViewed)];
+						goto done;
+					}
 				}
 			}
 		}
 	}
+done:
+	return;
 }
 
 %new
@@ -51,37 +58,35 @@ static NSString* const kBundlePath =
 {
 	NSBundle *bundle = [[NSBundle alloc] initWithPath:kBundlePath];
 	NSString *imagePath = [bundle pathForResource:@"filter" ofType:@"png"];
-	UIImage *myImage = [UIImage imageWithContentsOfFile:imagePath];
-	UIGraphicsBeginImageContext(CGSizeMake(28, 28));
-	[myImage drawInRect:CGRectMake(0, 0, 28, 28)];
-	UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-
-	UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithImage:scaledImage style:UIBarButtonItemStylePlain
+	UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+	filterButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain
 	target:self action:@selector(showFilters:)];
+
 	Ivar var = class_getInstanceVariable(object_getClass((id)self), "_defaultToolbarItems");
 	NSArray* oldButtonItems = object_getIvar((id)self, var);
-	NSLog(@"mailhelper oldButtonsItems %@", oldButtonItems);
 	NSMutableArray* newButtonItems = [oldButtonItems mutableCopy];
-	[newButtonItems insertObject:buttonItem atIndex:0];
+	[newButtonItems insertObject:filterButton atIndex:0];
 	object_setIvar((id)self, var, newButtonItems);
+
 	[(UIViewController*)self setToolbarItems:newButtonItems animated: NO];
-	NSLog(kTag, @"settoolbars");
 }
 
 - (void)viewDidLoad
 {
-	%log;
+	// %log;
 	[(id)self performSelector:@selector(addFilterUI)];
+	// [(id)self performSelector:@selector(myMarkAll)];
 }
 
 - (id)tableView:(id)tableView cellForRowAtIndexPath:(id)indexPath
 {
-	%log;
-	//NSLog(kTag, @"kekekekek");
+	// %log;
 	id cell = %orig; // Call through to the original function with its original arguments.
 	if (!cell) {
 		//NSLog(kTag, @"cell empty");
+		return cell;
+	}
+	if ([FilterStore sharedStore].filters.count == 0) {
 		return cell;
 	}
 	if (![cell respondsToSelector:@selector(message)]) {
@@ -110,14 +115,15 @@ static NSString* const kBundlePath =
 	}
 	//NSLog(kTag, @"could get the sender value");
 	for (NSString* sender in senders) {
-		NSRange range =  [sender rangeOfString: @"jcyangzh@foxmail.com"];
-		//NSLog(@"mailhelper: range ( %d, %d) notfound %d", (int)range.location, (int)range.length, (int)NSNotFound);
-		if (range.location != NSNotFound) {
-			[msg performSelector:@selector(markAsViewed)];
-			//NSLog(kTag, @"matched the keke");
-			break;
+		for (NSString* addr in [FilterStore sharedStore].filters) {
+			NSRange range = [sender rangeOfString: addr];
+			if (range.location != NSNotFound) {
+				[msg performSelector:@selector(markAsViewed)];
+				goto done;
+			}
 		}
 	}
+done:
 	return cell;
 }
 

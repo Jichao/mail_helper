@@ -5,11 +5,10 @@
 //  Created by Daniel Hammond on 11/26/13.
 //
 //
-
+#import "Foundation/Foundation.h"
 #import "MASUtilities.h"
 #import "MASConstraintMaker.h"
 #import "MASViewAttribute.h"
-#define NS_NOESCAPE
 
 typedef NS_ENUM(NSUInteger, MASAxisType) {
     MASAxisTypeHorizontal,
