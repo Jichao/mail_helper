@@ -9,6 +9,10 @@
 #import "MASUtilities.h"
 #import "MASConstraintMaker.h"
 #import "MASViewAttribute.h"
+#ifndef NS_NOESCAPE
+#define NS_NOESCAPE
+#endif
+
 /**
  *	Provides constraint maker block
  *  and convience methods for creating MASViewAttribute which are view + NSLayoutAttribute pairs

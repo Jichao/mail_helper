@@ -6,6 +6,9 @@ static NSString* const kCellId = @"FitlerViewCell";
 static NSString* const kBundlePath =
 @"/Library/MobileSubstrate/DynamicLibraries/mailhelper_res.bundle";
 
+// #pragma clang diagnostic push
+// #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+
 @interface FilterViewController()<UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate>
 @property (nonatomic, strong) UITableView* tableView;
 @end
@@ -140,3 +143,5 @@ static NSString* const kBundlePath =
     }
 }
 @end
+
+// #pragma clang diagnostic pop

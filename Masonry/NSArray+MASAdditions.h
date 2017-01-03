@@ -9,6 +9,9 @@
 #import "MASUtilities.h"
 #import "MASConstraintMaker.h"
 #import "MASViewAttribute.h"
+#ifndef NS_NOESCAPE
+#define NS_NOESCAPE
+#endif
 
 typedef NS_ENUM(NSUInteger, MASAxisType) {
     MASAxisTypeHorizontal,

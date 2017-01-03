@@ -9,11 +9,10 @@ the generation of a class list and an automatic constructor.*/
 %hook MailboxContentViewController
 
 // Hooking an instance method with an argument.
-static NSString* const kTag = @"mailhelper: %@";
+// static NSString* const kTag = @"mailhelper: %@";
 static NSString* const kBundlePath =
 @"/Library/MobileSubstrate/DynamicLibraries/mailhelper_res.bundle";
 static UIBarButtonItem* filterButton;
-
 %new
 - (void)myMarkAll
 {
@@ -45,6 +44,29 @@ done:
 	return;
 }
 
+- (void)updateBarButtons
+{
+	%orig;
+	if (!filterButton) {
+		NSBundle *bundle = [[NSBundle alloc] initWithPath:kBundlePath];
+		NSString *imagePath = [bundle pathForResource:@"filter" ofType:@"png"];
+		UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
+		filterButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain
+		target:self action:@selector(showFilters:)];
+		[bundle release];
+	}
+	Ivar var = class_getInstanceVariable(object_getClass((id)self), "_defaultToolbarItems");
+	NSArray* oldButtonItems = object_getIvar((id)self, var);
+	if ([oldButtonItems count]) {
+		if (oldButtonItems[0] != filterButton) {
+			NSMutableArray* newButtonItems = [oldButtonItems mutableCopy];
+			[newButtonItems insertObject:filterButton atIndex:0];
+			object_setIvar((id)self, var, newButtonItems);
+			[(UIViewController*)self setToolbarItems:newButtonItems animated: NO];
+		}
+	}
+}
+
 %new
 - (void)showFilters:(id)sender
 {
@@ -53,30 +75,12 @@ done:
 	animated: NO];
 }
 
-%new
-- (void)addFilterUI
-{
-	NSBundle *bundle = [[NSBundle alloc] initWithPath:kBundlePath];
-	NSString *imagePath = [bundle pathForResource:@"filter" ofType:@"png"];
-	UIImage *image = [UIImage imageWithContentsOfFile:imagePath];
-	filterButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain
-	target:self action:@selector(showFilters:)];
-
-	Ivar var = class_getInstanceVariable(object_getClass((id)self), "_defaultToolbarItems");
-	NSArray* oldButtonItems = object_getIvar((id)self, var);
-	NSMutableArray* newButtonItems = [oldButtonItems mutableCopy];
-	[newButtonItems insertObject:filterButton atIndex:0];
-	object_setIvar((id)self, var, newButtonItems);
-
-	[(UIViewController*)self setToolbarItems:newButtonItems animated: NO];
-}
-
-- (void)viewDidLoad
-{
-	// %log;
-	[(id)self performSelector:@selector(addFilterUI)];
-	// [(id)self performSelector:@selector(myMarkAll)];
-}
+// - (void)viewDidAppear
+// {
+// 	// [(id)self performSelector:@selector(addFilterUI)];
+// 	%orig;
+// 	// [(id)self performSelector:@selector(myMarkAll)];
+// }
 
 - (id)tableView:(id)tableView cellForRowAtIndexPath:(id)indexPath
 {
